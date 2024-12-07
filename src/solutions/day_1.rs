@@ -54,53 +54,78 @@
 use anyhow::Context;
 use regex::Regex;
 use sorted_vec::SortedVec;
-use std::{collections::BTreeSet, io::BufRead};
+use std::io::BufRead;
 
+/// Implementation of Solution 1 for Day 1.
 pub struct Solution1 {}
 
 impl Solution1 {
     pub fn solve(file_path: &str) -> anyhow::Result<i32> {
         // Get the file contents
-        let file_contents = super::open_file(file_path).context("Could not read the file!")?;
+        let parsed_data = parse_file(file_path)?;
 
-        // Define the regex to remove the extra `\s` in between the columns
-        let re = Regex::new(r"\s+").context("Error compliing the regex")?;
-
-        // Use a BTreeSet so i can keep the columns sorted as i add items
-        let mut column_a: SortedVec<i32> = SortedVec::new();
-        let mut column_b: SortedVec<i32> = SortedVec::new();
-
-        for line in file_contents.lines() {
-            match line {
-                Ok(contents) => {
-                    // Remove the extra spaces around and in the middle of each line
-                    let trimmed = re.replace(&contents.trim(), " ");
-
-                    // Split the colums
-                    let matches: Vec<&str> = trimmed.split(' ').collect();
-
-                    column_a.insert(matches[0].parse::<i32>()?);
-                    column_b.insert(matches[1].parse::<i32>()?);
-                }
-                _ => println!("No lines left to read!"),
-            }
-        }
-
-        /*
-        println!("Processed {} lines!", debug_count);
-        println!("ColumnA: {}", column_a.len());
-        println!("ColumnB: {}", column_b.len());
-
-        column_a
+        Ok(parsed_data
+            .column_a
             .iter()
-            .zip(column_b.iter())
-            .for_each(|(first, second)| {  println!("{} - {} = {}", first, second, (first - second).abs()); } );
-        */
-
-        Ok(column_a
-            .iter()
-            .zip(column_b.iter())
+            .zip(parsed_data.column_b.iter())
             .map(|(first, second)| (first - second).abs())
             .sum())
     }
+}
+
+pub struct Solution2 {}
+
+/// Implementation for Solution 2 of Day 1.
+impl Solution2 {
+    pub fn solve(file_path: &str) -> anyhow::Result<i32> {
+        // Get the file contents
+        let file_contents = parse_file(file_path)?;
+
+        Ok(file_contents
+            .column_a
+            .iter()
+            .map(|x| file_contents
+                .column_b
+                .iter()
+                .filter(|&y| y == x).count() as i32 * x)
+            .sum())
+    }
+}
+
+#[derive(Debug)]
+/// Represents the data file for day 1 challenge.
+pub struct ParsedData {
+    pub column_a: SortedVec<i32>,
+    pub column_b: SortedVec<i32>,
+}
+
+/// Parse the file into `ParsedData` type.
+pub fn parse_file(file_path: &str) -> anyhow::Result<ParsedData> {
+    // Get the file contents
+    let file_contents = super::open_file(file_path).context("Could not read the file!")?;
+
+    // Define the regex to remove the extra `\s` in between the columns
+    let re = Regex::new(r"\s+").context("Error compliing the regex")?;
+
+    // Use a BTreeSet so i can keep the columns sorted as i add items
+    let mut column_a: SortedVec<i32> = SortedVec::new();
+    let mut column_b: SortedVec<i32> = SortedVec::new();
+
+    for line in file_contents.lines() {
+        match line {
+            Ok(contents) => {
+                // Remove the extra spaces around and in the middle of each line
+                let trimmed = re.replace(&contents.trim(), " ");
+
+                // Split the colums
+                let matches: Vec<&str> = trimmed.split(' ').collect();
+
+                column_a.insert(matches[0].parse::<i32>()?);
+                column_b.insert(matches[1].parse::<i32>()?);
+            }
+            _ => println!("No lines left to read!"),
+        }
+    }
+
+    Ok(ParsedData { column_a, column_b })
 }
