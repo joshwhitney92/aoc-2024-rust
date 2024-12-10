@@ -4,6 +4,7 @@ use std::{
 };
 
 pub mod day_1;
+pub mod day_2;
 
 
 /// Attempt to open the file at `file_path` and return a BufReader<File>.
