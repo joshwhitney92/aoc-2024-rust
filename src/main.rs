@@ -15,6 +15,8 @@ fn main() -> anyhow::Result<()> {
     // println!("Solution 1 Total is: {}", result);
     // println!("Solution 2 Total is: {}", result2);
 
+
+    // Day 2 Solution
     let contents = open_file("./problem_inputs/day_2.txt").context("Could not open file!")?;
     let file_data = helpers::parse_file_data(contents)?;
     let s = Solution::new();
